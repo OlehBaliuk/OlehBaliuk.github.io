@@ -1,22 +1,34 @@
 import Vue from 'vue'
 import VueRouter, { RouteConfig } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import LoginPage from '@/views/LoginPage.vue'
+import ScannerPage from '@/views/ScannerPage.vue'
+import ResultPage from '@/views/ResultPage.vue'
+import getJwt from '@/utils/getJwt'
+import routePaths from '@/constants/routePaths'
 
 Vue.use(VueRouter)
 
 const routes: Array<RouteConfig> = [
   {
     path: '/',
-    name: 'home',
-    component: HomeView
+    redirect: { name: 'scanner' }
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
+    path: routePaths.login,
+    name: 'login',
+    component: LoginPage
+  },
+  {
+    path: routePaths.scanner,
+    name: 'scanner',
+    component: ScannerPage,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: routePaths.result,
+    name: 'result',
+    component: ResultPage,
+    meta: { requiresAuth: true }
   }
 ]
 
@@ -24,6 +36,14 @@ const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
   routes
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.meta?.requiresAuth && !getJwt()) {
+    next(routePaths.login)
+  } else {
+    next()
+  }
 })
 
 export default router
